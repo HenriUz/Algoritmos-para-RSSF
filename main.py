@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import random as rd
+from Metodos import metodos as met
 
 #Classe responsável por representar os sensores.
 class Sensor():
@@ -121,57 +122,6 @@ def leCoordenadas():
     return rssf
 
 """
-Descrição: Algoritmo de menor caminho de Dijkstra.
-Entrada: Matriz de incidência ponderada; Vértice de origem; Vértice de destino.
-Saída: Lista com o menor caminho do vértice de origem até o de destino.
-"""
-def dijkstra(matriz, vOrigem, vDestino):
-    """ Variáveis principais """
-    custo = {} #Dicionário que representa os custos.
-    rota = {} #Dicionário com a rota de menor caminho.
-    A = [i for i in range(len(matriz))] #Vértices em aberto.
-    F = [] #Vértices fechados.
-    menorC = [] #Lista com o menor caminho.
-
-    #Inicializando os dicionários.
-    for i in range(len(matriz)):
-        if i == vOrigem:
-            custo[i] = 0
-            rota[i] = vOrigem
-        else:
-            custo[i] = -1
-            rota[i] = 0
-
-    """ Iniciando o processo de descobrimento do menor caminho """
-    while A:
-        v = A[0] #Vértice com o menor custo em aberto.
-        #Processo para descobrir qual é o vértice com menor custo em aberto.
-        for i in A:
-            if custo[v] == -1 or (custo[i] != -1 and custo[i] < custo[v]):
-                v = i
-        F.append(v)
-        A.remove(v)
-        N = [] #Adjacentes de v em aberto
-        #Processo para descobrir esses adjacentes.
-        for i in range(len(matriz)):
-            if matriz[v][i] > 0 and i not in F:
-                N.append(i)
-        #Setando os custos em relação a v e seus adjacentes
-        for u in N:
-            if custo[v] + matriz[v][u] < custo[u] or custo[u] == -1:
-                custo[u] = custo[v] + matriz[v][u]
-                rota[u] = v
-    
-    """ Montando o menor caminho """
-    menor = vDestino
-    while menor != vOrigem:
-        menorC.append(menor)
-        menor = rota[menor]
-    menorC.append(menor)
-    menorC.reverse()
-    return menorC
-
-"""
 Descrição: Função responsável por atualizar a matriz de incidência ponderada com os novos valores dos arcos.
 Entrada: Dicionário com as informações da rede; Matriz de incidência ponderada.
 Saída: Indiretamente a matriz atualizada.
@@ -256,7 +206,7 @@ def start(matriz, rssf):
 
     #Calculando os menores caminhos de cada sensor.
     for sensor in range(1, rssf["tam"] + 1):
-        rssf[sensor].menorCaminho = dijkstra(matriz, sensor, 0)
+        rssf[sensor].menorCaminho = met.dijkstra(matriz, sensor, 0)
 
     """ Iniciando os ciclos """
     while condicao:
@@ -272,7 +222,7 @@ def start(matriz, rssf):
             atualizaMatriz(rssf, matriz)
             #Atualizando os menores caminhos.
             for sensor in range(1, rssf["tam"] + 1):
-                rssf[sensor].menorCaminho = dijkstra(matriz, sensor, 0)
+                rssf[sensor].menorCaminho = met.dijkstra(matriz, sensor, 0)
             var_10 += 10
         #A cada 20 ciclos, todos os sensores deverão enviar uma mensagem para a ERB.
         if ciclo == var_20:
