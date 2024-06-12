@@ -1,5 +1,8 @@
+import numpy as np
+
 
 """ ----------- MENOR CAMINHO ----------- """
+
 
 """
 Descrição: Algoritmo de menor caminho de Dijkstra.
@@ -52,7 +55,9 @@ def dijkstra(matriz, vOrigem, vDestino):
     menorC.reverse()
     return menorC
 
+
 """ ----------- ÁRVORE GERADORA MÍNIMA ----------- """
+
 
 """
 Descrição: Identifica qual é o vértice principal do conjunto, para otimizar a busca, é utilizada a compressão de caminho, que faz todos os vértices
@@ -93,13 +98,13 @@ Entrada: matriz de adjacências (tipo numpy.ndarray)
 Saída: sequência de arestas correspondente a árvore geradora mínima (tipo List) e inteiro representando o custo da árvore geradora mínima (tipo Integer). 
 Ex. [(0, 1), (1, 2)] 5
 """
-def kruskal(matriz):
+def kruskal(matriz, rssf):
     #Variáveis principais.
     T = [] #Conjunto de arestas da árvore mínima
     H = [] #Conjunto de todas as arestas ordenadas por peso
     verticePrinc = [] #Cada vértice tem sua posição na lista, o valor dessa posição indica o vértice principal do sub-conjunto que o vértice está.
     valorVertice = [] #Cada vértice tem sua posição na lista, serve para identificar qual sub-conjunto é maior e assim ajudar na união de dois sub-conjuntos.
-    tamanho = 0 #Tamanho da árvore mínima
+    arvore = np.zeros((rssf["tam"] + 1, rssf["tam"] + 1), dtype="int64") #Matriz que representa a árvore mínima.
 
     #Inicializando as variáveis.
     for i in range(len(matriz)):
@@ -117,8 +122,40 @@ def kruskal(matriz):
             #Se o principal de dois vértices forem o mesmo, significa que eles estão no mesmo sub-conjunto, e adicionar uma aresta entre eles formaria ciclo.
             if Find_Set(aresta[0], verticePrinc) != Find_Set(aresta[1], verticePrinc):
                 T.append((aresta[0], aresta[1]))
-                tamanho+=matriz[aresta[0]][aresta[1]]
+                arvore[aresta[0]][aresta[1]] = 1
+                arvore[aresta[1]][aresta[0]] = 1
                 Union_Set(aresta[0], aresta[1], verticePrinc, valorVertice) #Unindo os dois sub-conjuntos
+    return arvore
 
-    print(T, tamanho)
-    return (T, tamanho)
+"""
+Descrição: Função recursiva, responsável por encontrar o caminho de um vértice de origem até o vértice de destino usando a Depth-First Search.
+Entrada: Dicionário de adjacências; Vértice de origem; Vértice de destino; Caminho montado (somente na recursão); Dicionário de vértices analisados 
+    (somente na recursão).
+Saída: O caminho do vértice de destino até o de origem.
+"""
+def dfs(listaAdj, vOrigem, vDestino, caminho=None, analisado=None):
+    """ Variáveis principais """
+    if caminho is None:
+        caminho = [] #Caminho
+    if analisado is None:
+        analisado = dict([i, 0] for i in listaAdj)  #Dicionário de vértices analisados (1 - analisado; 0 - não analisado).
+    
+    caminho.append(vOrigem)
+    analisado[vOrigem] = 1
+    
+    #Vértice de destino encontrado, então retornamos o caminho.
+    if vOrigem == vDestino:
+        return caminho
+
+    #Percorrendo os vizinhos.
+    for vizinho in listaAdj[vOrigem]:
+        #Se o vizinho não foi analisado, encontre o caminho do vizinho.
+        if analisado[vizinho] == 0:
+            result = dfs(listaAdj, vizinho, vDestino, caminho, analisado)
+            #Se o caminho foi encontrado, retorna ele.
+            if result:
+                return result
+    
+    #Se o caminho não foi encontrado, retira o elemento atual do caminho e retorna nada.
+    caminho.pop()
+    return []
