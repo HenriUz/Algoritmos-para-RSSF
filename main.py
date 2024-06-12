@@ -2,6 +2,8 @@ import math
 import numpy as np
 import random as rd
 from Metodos import metodos as met
+from Modelagens import distancia as dist
+
 
 #Classe responsável por representar os sensores.
 class Sensor():
@@ -12,7 +14,7 @@ class Sensor():
         self.__alcance = 200 #Alcance do sensor.
         self.__vizinhos = {} #Dicionário de vizinhos do sensor, cada chave é a distância até o sensor.
         self.__bateriaViz = {} #Dicionário das baterias dos vizinhos.
-        self.__bateria = 2500 #Bateria do sensor.
+        self.__bateria = 25000 #Bateria do sensor.
         self.__menorCaminho = [] #Lista com o menor caminho.
 
     @property
@@ -102,7 +104,7 @@ Saída: Dicionário onde tam é a chave para o tamanho, ERB é a chave para um t
 def leCoordenadas():
     """ Variáveis principais """
     rssf = {} #Dicionário da rede
-    arquivo = "C:\\Users\\Usuario\\Documents\\01 - Universidade\\3 - Periodo\\CMAC03 - Algoritmos em Grafos\\Trabalho\\Coordenadas\\Rede 100.txt" #Caminho
+    arquivo = "C:\\Users\\Usuario\\Documents\\01 - Universidade\\3 - Periodo\\CMAC03 - Algoritmos em Grafos\\Trabalho\\Coordenadas\\Rede 50.txt" #Caminho
     sensor = 0 #Auxiliar
 
     """ Lendo o dataset """
@@ -120,131 +122,6 @@ def leCoordenadas():
         sensor += 1
     
     return rssf
-
-"""
-Descrição: Função responsável por atualizar a matriz de incidência ponderada com os novos valores dos arcos.
-Entrada: Dicionário com as informações da rede; Matriz de incidência ponderada.
-Saída: Indiretamente a matriz atualizada.
-"""
-def atualizaMatriz(rssf, matriz):
-    #Percorrendo os sensores da rede.
-    for i in range(1, rssf["tam"] + 1):
-        #Percorrendo os vizinhos desse sensor.
-        for vizinho in rssf[i].vizinhos:
-            #Se o vizinho não for a estação rádio-base, atualiza o valor da aresta.
-            if vizinho != "ERB":
-                matriz[i][vizinho] = rssf[i].vizinhos[vizinho] + (((2500 - rssf[vizinho].bateria) / 25) * 1000)
-
-"""
-Descrição: Função que simula o envio de uma mensagem de um sensor até a estação rádio-base. Quando um sensor recebe uma mensagem ele reenvia ela.
-Entrada: Dicionário com as informações da rede; Sensores que irão enviar a mensagem.
-Saída: Lista com todos os sensores que conseguiram enviar a mensagem.
-"""
-def enviaMensagem(rssf, sensores):
-    mensagem = [] # Lista com os sensores que enviaram a mensagem
-
-    """ Iniciando o processo de envio das mensagens. """
-    #Percorrendo os sensores que irão enviar as mensagens.
-    for sensor in sensores:
-        #Percorrendo os sensores que estão no menor caminho.
-        for caminho in rssf[sensor].menorCaminho:
-            #Um elemento só poderá receber ou enviar uma mensagem se ele tiver sua bateria maior que 0 e for diferente da estação rádio-base (0)
-            if caminho != 0 and rssf[caminho].bateria > 0:
-                #Se o elemento atual do caminho for diferente do elemento inicial, então ele também gasta bateria para receber.
-                if caminho != sensor:
-                    rssf[caminho].bateria = rssf[caminho].bateria - 2
-                else:
-                    #Elemento teve sucesso no envio da mensagem
-                    mensagem.append(sensor)
-                rssf[caminho].bateria = rssf[caminho].bateria - 5
-            #Se a bateria do sensor é menor que zero, não tem como continuar o processo de envio deste caminho.
-            elif caminho != 0 and rssf[caminho].bateria < 0:
-                break
-    return mensagem
-
-"""
-Descrição: Função que simula o envio de uma mensagem de todos os sensores até a estação rádio-base. Quando um sensor recebe uma mensagem ele reenvia ela.
-Entrada: Dicionário com as informações da rede.
-Saída: Lista com todos os sensores que conseguiram enviar a mensagem.
-"""
-def todosEnviam(rssf):
-    mensagem = [] # Lista com os sensores que enviaram a mensagem
-
-    """ Iniciando o processo de envio das mensagens. """
-    #Percorrendo os sensores que irão enviar as mensagens.
-    for sensor in rssf:
-        if sensor != "tam" and sensor != "ERB":
-            #Percorrendo os sensores que estão no menor caminho.
-            for caminho in rssf[sensor].menorCaminho:
-                #Um elemento só poderá receber ou enviar uma mensagem se ele tiver sua bateria maior que 0 e for diferente da estação rádio-base (0)
-                if caminho != 0 and rssf[caminho].bateria > 0:
-                    #Se o elemento atual do caminho for diferente do elemento inicial, então ele também gasta bateria para receber.
-                    if caminho != sensor:
-                        rssf[caminho].bateria = rssf[caminho].bateria - 2
-                    else:
-                        #Elemento teve sucesso no envio da mensagem
-                        mensagem.append(sensor)
-                    rssf[caminho].bateria = rssf[caminho].bateria - 5
-                #Se a bateria do sensor é menor que zero, não tem como continuar o processo de envio deste caminho.
-                elif caminho != 0 and rssf[caminho].bateria < 0:
-                    break
-    return mensagem
-
-"""
-Descrição: Função responsável por simular os ciclos dos sensores na rede.
-Entrada: A matriz de adjacência ponderada inicial; Dicionário com as informações da rede.
-Saída: Ciclo no qual a estação rádio-base identificou uma morte.
-"""
-def start(matriz, rssf):
-    """ Variáveis principais """
-    ciclo = 0 #Ciclo
-    condicao = 1 #Condição de parada dos ciclos -> ERB identificou uma morte
-    var_10 = 10 #Variável que irá informar quando recalcular as distâncias dos vizinhos.
-    var_20 = 20 #Variável que irá informar quando todos os sensores irão enviar uma mensagem para ERB.
-    qnt = int(rssf["tam"] * 0.25) #Quantidade de sensores que irão mandar mensagem por ciclo.
-    firstDead = 0 #Variável que irá nos informar quando ocorreu a primeira morte.
-
-    #Calculando os menores caminhos de cada sensor.
-    for sensor in range(1, rssf["tam"] + 1):
-        rssf[sensor].menorCaminho = met.dijkstra(matriz, sensor, 0)
-
-    """ Iniciando os ciclos """
-    while condicao:
-        sensores = [] #Lista que conterá os sensores que irão enviar a mensagem
-        mensagem = [] #Lista que conterá quais sensores conseguiram enviar suas mensagens
-        ciclo += 1
-        #A cada 10 ciclos, todos os sensores deverão informar os seus vizinhos suas novas baterias
-        if ciclo == var_10:
-            #Atualizando as baterias.
-            for sensor in range(1, rssf["tam"] + 1):
-                rssf[sensor].infVizinhos(rssf)
-            #Atualizando a matriz.
-            atualizaMatriz(rssf, matriz)
-            #Atualizando os menores caminhos.
-            for sensor in range(1, rssf["tam"] + 1):
-                rssf[sensor].menorCaminho = met.dijkstra(matriz, sensor, 0)
-            var_10 += 10
-        #A cada 20 ciclos, todos os sensores deverão enviar uma mensagem para a ERB.
-        if ciclo == var_20:
-            mensagem = todosEnviam(rssf)
-            #Se a quantidade de sensores que conseguiram enviar uma mensagem for menor do que a quantidade total de sensores, então um sensor morreu e a ERB identificou.
-            if len(mensagem) != rssf["tam"]:
-                condicao = 0
-            var_20 += 20
-        #Se não acontecer nenhum dos dois anteriores, sensores aleatórios irão enviar uma mensagem.
-        elif ciclo != var_10:
-            #Gerando os sensores, sem repetir.
-            while len(sensores) < qnt:
-                aleatorio = rd.randint(1, rssf["tam"])
-                if aleatorio not in sensores:
-                    sensores.append(aleatorio)
-            #Enviando a mensagem.
-            mensagem = enviaMensagem(rssf, sensores)
-            #Se a quantidade de sensores que conseguiram enviar suas mensagens for menor do que a quantidade estabelecida, a primeira morte aconteceu.
-            if len(mensagem) < qnt and firstDead == 0:
-                firstDead = ciclo
-    print(ciclo, firstDead)
-    return ciclo
 
 """
 Descrição: Função principal, responsável por montar a matriz de incidência ponderada inicial, e por chamar as funções de leitura do dataset e início do ciclo.
@@ -269,10 +146,17 @@ def main():
             if vizinho == "ERB":
                 matriz[i][0] = rssf[i].vizinhos[vizinho]
             else:
-                matriz[i][vizinho] = rssf[i].vizinhos[vizinho] + (((2500 - rssf[vizinho].bateria) / 25) * 1000)
-    
+                matriz[i][vizinho] = rssf[i].vizinhos[vizinho]
+
     #Chamando a função que irá iniciar os ciclos.
-    start(matriz, rssf)
+    print("\nModelagens: 1 - Distância; 2 - Clusters")
+    print("Métodos: 1 - Menor Caminho; 2 - Menor Caminho com Salto; 3 - Árvore Geradora Mínima")
+    #resp = input("Digite qual modelagem e método você deseja executar (Combine a modelagem com o método, ex.: 11, 12, 13): ")
+    resp = "13"
+    if resp == "11":
+        dist.startMC(matriz, rssf)
+    elif resp == "13":
+        dist.startAG(matriz, rssf)
 
 if __name__ == "__main__":
     main()
