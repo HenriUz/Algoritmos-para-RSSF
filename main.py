@@ -14,7 +14,7 @@ class Sensor():
         self.__alcance = 200 #Alcance do sensor.
         self.__vizinhos = {} #Dicionário de vizinhos do sensor, cada chave é a distância até o sensor.
         self.__bateriaViz = {} #Dicionário das baterias dos vizinhos.
-        self.__bateria = 25000 #Bateria do sensor.
+        self.__bateria = 2500 #Bateria do sensor.
         self.__menorCaminho = [] #Lista com o menor caminho.
 
     @property
@@ -77,7 +77,7 @@ class Sensor():
                 #Verificando se está no alcance so sensor.
                 if dist <= self.alcance:
                     self.__vizinhos[chave] = dist
-                    self.__bateriaViz[chave] = 2500
+                    self.__bateriaViz[chave] = self.bateria
     
     """
     Descrição: Função do sensor, responsável por simular o envio de uma mensagem para os vizinhos informando a bateria.
@@ -89,11 +89,11 @@ class Sensor():
         for vizinho in self.vizinhos:
             #O sensor só poderá enviar uma mensagem se o destino não for a ERB, e sua bateria for maior que 0.
             if vizinho != "ERB" and self.bateria > 0:
-                self.bateria = self.bateria - 5
+                self.bateria = self.bateria - (0.025 * (0.1 + (0.0001 * self.vizinhos[vizinho])))
                 #Atualizando a bateria no sensor vizinho.
                 if rssf[vizinho].bateria > 0:
                     rssf[vizinho].bateriaViz[self.identidade] = self.bateria
-                    rssf[vizinho].bateria = rssf[vizinho].bateria - 2
+                    rssf[vizinho].bateria = rssf[vizinho].bateria - 0.00164
 
 """
 Descrição: Função responsável por ler o dataset e gerar um dicionário com as informações da rede.
@@ -147,12 +147,12 @@ def main():
                 matriz[i][0] = rssf[i].vizinhos[vizinho]
             else:
                 matriz[i][vizinho] = rssf[i].vizinhos[vizinho]
-
+    
     #Chamando a função que irá iniciar os ciclos.
     print("\nModelagens: 1 - Distância; 2 - Clusters")
     print("Métodos: 1 - Menor Caminho; 2 - Menor Caminho com Salto; 3 - Árvore Geradora Mínima")
     #resp = input("Digite qual modelagem e método você deseja executar (Combine a modelagem com o método, ex.: 11, 12, 13): ")
-    resp = "13"
+    resp = "11"
     if resp == "11":
         dist.startMC(matriz, rssf)
     elif resp == "13":
