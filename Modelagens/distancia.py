@@ -18,7 +18,7 @@ def atualizaMatriz(rssf, matriz):
         for vizinho in rssf[i].vizinhos:
             #Se o vizinho não for a estação rádio-base, atualiza o valor da aresta.
             if vizinho != "ERB":
-                matriz[i][vizinho] = rssf[i].vizinhos[vizinho] + (((25000 - rssf[vizinho].bateria) / 250) * 1000)
+                matriz[i][vizinho] = rssf[i].vizinhos[vizinho] + (((2500 - rssf[i].bateriaViz[vizinho]) / 25) * 1000)
 
 """
 Descrição: Função que simula o envio de uma mensagem de um sensor até a estação rádio-base. Quando um sensor recebe uma mensagem ele reenvia ela.
@@ -31,20 +31,29 @@ def enviaMensagem(rssf, sensores):
     """ Iniciando o processo de envio das mensagens. """
     #Percorrendo os sensores que irão enviar as mensagens.
     for sensor in sensores:
+        i = 0 #Indice do elemento atual na lista do menor caminho.
         #Percorrendo os sensores que estão no menor caminho.
         for caminho in rssf[sensor].menorCaminho:
             #Um elemento só poderá receber ou enviar uma mensagem se ele tiver sua bateria maior que 0 e for diferente da estação rádio-base (0)
             if caminho != 0 and rssf[caminho].bateria > 0:
                 #Se o elemento atual do caminho for diferente do elemento inicial, então ele também gasta bateria para receber.
                 if caminho != sensor:
-                    rssf[caminho].bateria = rssf[caminho].bateria - 2
+                    rssf[caminho].bateria = rssf[caminho].bateria - 0.00164
                 else:
                     #Elemento teve sucesso no envio da mensagem
                     mensagem.append(sensor)
-                rssf[caminho].bateria = rssf[caminho].bateria - 5
+                #Verificando para quem o sensor vai enviar a mensagem.
+                if rssf[sensor].menorCaminho[i + 1] == 0:
+                    #Enviando para a ERB.
+                    rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * rssf[caminho].vizinhos["ERB"])))
+                else:
+                    #Enviando para o próximo sensor do menor caminho.
+                    dist = rssf[caminho].vizinhos[rssf[sensor].menorCaminho[i + 1]] #Pegando a distância do sensor atual até o próximo sensor do menor caminho.
+                    rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * dist)))
             #Se a bateria do sensor é menor que zero, não tem como continuar o processo de envio deste caminho.
             elif caminho != 0 and rssf[caminho].bateria < 0:
                 break
+            i += 1
     return mensagem
 
 """
@@ -59,20 +68,29 @@ def todosEnviam(rssf):
     #Percorrendo os sensores que irão enviar as mensagens.
     for sensor in rssf:
         if sensor != "tam" and sensor != "ERB":
+            i = 0 #Indice do elemento atual na lista do menor caminho.
             #Percorrendo os sensores que estão no menor caminho.
             for caminho in rssf[sensor].menorCaminho:
                 #Um elemento só poderá receber ou enviar uma mensagem se ele tiver sua bateria maior que 0 e for diferente da estação rádio-base (0)
                 if caminho != 0 and rssf[caminho].bateria > 0:
                     #Se o elemento atual do caminho for diferente do elemento inicial, então ele também gasta bateria para receber.
                     if caminho != sensor:
-                        rssf[caminho].bateria = rssf[caminho].bateria - 2
+                        rssf[caminho].bateria = rssf[caminho].bateria - 0.00164
                     else:
                         #Elemento teve sucesso no envio da mensagem
                         mensagem.append(sensor)
-                    rssf[caminho].bateria = rssf[caminho].bateria - 5
+                    #Verificando para quem o sensor vai enviar a mensagem.
+                    if rssf[sensor].menorCaminho[i + 1] == 0:
+                        #Enviando para a ERB.
+                        rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * rssf[caminho].vizinhos["ERB"])))
+                    else:
+                        #Enviando para o próximo sensor do menor caminho.
+                        dist = rssf[caminho].vizinhos[rssf[sensor].menorCaminho[i + 1]] #Pegando a distância do sensor atual até o próximo sensor do menor caminho.
+                        rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * dist)))
                 #Se a bateria do sensor é menor que zero, não tem como continuar o processo de envio deste caminho.
                 elif caminho != 0 and rssf[caminho].bateria < 0:
                     break
+                i += 1
     return mensagem
 
 
@@ -96,6 +114,7 @@ def startMC(matriz, rssf):
     #Calculando os menores caminhos de cada sensor.
     for sensor in range(1, rssf["tam"] + 1):
         rssf[sensor].menorCaminho = met.dijkstra(matriz, sensor, 0)
+        print(rssf[sensor].menorCaminho)
 
     """ Iniciando os ciclos """
     while condicao:
@@ -132,6 +151,10 @@ def startMC(matriz, rssf):
             #Se a quantidade de sensores que conseguiram enviar suas mensagens for menor do que a quantidade estabelecida, a primeira morte aconteceu.
             if len(mensagem) < qnt and firstDead == 0:
                 firstDead = ciclo
+        """for s in rssf:
+            if s != "tam" and s != "ERB":
+                print(rssf[s].bateria)
+        print()"""
     print(ciclo, firstDead)
     return ciclo
 
