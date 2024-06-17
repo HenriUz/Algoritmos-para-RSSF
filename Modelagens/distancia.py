@@ -135,7 +135,7 @@ def enviaMensagem(rssf, sensores):
                 if caminho != sensor:
                     rssf[caminho].bateria = rssf[caminho].bateria - 0.00164
                 else:
-                    #Elemento teve sucesso no envio da mensagem
+                    #Elemento inicial teve sucesso no envio da mensagem
                     mensagem.append(sensor)
                 #Verificando para quem o sensor vai enviar a mensagem.
                 if rssf[sensor].menorCaminho[i + 1] == 0:
@@ -172,7 +172,7 @@ def todosEnviam(rssf):
                     if caminho != sensor:
                         rssf[caminho].bateria = rssf[caminho].bateria - 0.00164
                     else:
-                        #Elemento teve sucesso no envio da mensagem
+                        #Elemento inicial teve sucesso no envio da mensagem
                         mensagem.append(sensor)
                     #Verificando para quem o sensor vai enviar a mensagem.
                     if rssf[sensor].menorCaminho[i + 1] == 0:
@@ -275,7 +275,7 @@ Saída: Árvore mínima em matriz; Dicionário com as incidências.
 """
 def atualizaArvore(matriz, rssf):
     """ Variáveis principais """
-    arvore = met.kruskal(matriz, rssf) #Montando a árvore.
+    arvore = met.kruskal(matriz, rssf, len(matriz) - 1) #Montando a árvore.
     listaAdj = {} #Dicionário das incidências.
 
     """ Montando o dicionário """
