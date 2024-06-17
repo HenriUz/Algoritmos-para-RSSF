@@ -1,6 +1,101 @@
 from Metodos import metodos as met
+import math
 import numpy as np
 import random as rd
+
+
+""" ------------- CLASSES ------------- """
+
+
+#Classe responsável por representar os sensores.
+class Sensor():
+    def __init__(self, identidade, x, y):
+        self.__identidade = identidade #Nome do sensor, numérico.
+        self.__x = x #Coordenada x do sensor.
+        self.__y = y #Coordenada y do sensor.
+        self.__alcance = 200 #Alcance do sensor.
+        self.__vizinhos = {} #Dicionário de vizinhos do sensor, cada chave é a distância até o sensor.
+        self.__bateriaViz = {} #Dicionário das baterias dos vizinhos.
+        self.__bateria = 2500 #Bateria do sensor.
+        self.__menorCaminho = [] #Lista com o menor caminho.
+
+    @property
+    def identidade(self):
+        return self.__identidade
+
+    @property
+    def x(self):
+        return self.__x
+
+    @property
+    def y(self):
+        return self.__y
+    
+    @property
+    def alcance(self):
+        return self.__alcance
+    
+    @property
+    def vizinhos(self):
+        return self.__vizinhos
+    
+    @property
+    def bateriaViz(self):
+        return self.__bateriaViz
+
+    @property
+    def bateria(self):
+        return self.__bateria
+    
+    @bateria.setter
+    def bateria(self, nValor):
+        self.__bateria = nValor
+    
+    @property
+    def menorCaminho(self):
+        return self.__menorCaminho
+    
+    @menorCaminho.setter
+    def menorCaminho(self, mCaminho):
+        self.__menorCaminho = mCaminho
+
+    """
+    Descrição: Função do sensor, responsável por calcular os seus vizinhos.
+    Entrada: Dicionário com as informações da rede.
+    Saída: Nada.
+    """
+    def calcVizinhos(self, rssf):
+        #Calculando a distância até a estação rádio-base usando teorema de pitágoras (c² = a² + b²).
+        dist = math.sqrt(((self.x - rssf["ERB"][0])**2) + ((self.y - rssf["ERB"][1])**2))
+        #Verificando se está no alcance so sensor.
+        if dist <= self.alcance:
+            self.__vizinhos["ERB"] = dist
+
+        #Percorrendo os sensores.
+        for chave in range(1, rssf["tam"] + 1):
+            if chave != self.identidade:
+                #Calculando a distância até a estação rádio-base usando teorema de pitágoras (c² = a² + b²).
+                dist = math.sqrt(((self.x - rssf[chave].x)**2) + ((self.y - rssf[chave].y)**2))
+                #Verificando se está no alcance so sensor.
+                if dist <= self.alcance:
+                    self.__vizinhos[chave] = dist
+                    self.__bateriaViz[chave] = self.bateria
+    
+    """
+    Descrição: Função do sensor, responsável por simular o envio de uma mensagem para os vizinhos informando a bateria.
+    Entrada: Dicionário com as informações da rede.
+    Saída: Nada.
+    """
+    def infVizinhos(self, rssf):
+        #Percorrendo os vizinhos.
+        for vizinho in self.vizinhos:
+            #O sensor só poderá enviar uma mensagem se o destino não for a ERB, e sua bateria for maior que 0.
+            if vizinho != "ERB" and self.bateria > 0:
+                self.bateria = self.bateria - (0.025 * (0.1 + (0.0001 * self.vizinhos[vizinho])))
+                #Atualizando a bateria no sensor vizinho.
+                if rssf[vizinho].bateria > 0:
+                    rssf[vizinho].bateriaViz[self.identidade] = self.bateria
+                    rssf[vizinho].bateria = rssf[vizinho].bateria - 0.00164
 
 
 """ ------------- FUNÇÕES AUXILIARES ------------- """
@@ -157,6 +252,17 @@ def startMC(matriz, rssf):
         print()"""
     print(ciclo, firstDead)
     return ciclo
+
+
+""" ------------- MENOR CAMINHO COM SALTO ------------- """
+def startMS(matriz, rssf):
+    """ Variáveis principais """
+    ciclo = 0 #Ciclo
+    condicao = 1 #Condição de parada dos ciclos -> ERB identificou uma morte
+    var_10 = 10 #Variável que irá informar quando recalcular as distâncias dos vizinhos.
+    var_20 = 20 #Variável que irá informar quando todos os sensores irão enviar uma mensagem para ERB.
+    qnt = int(rssf["tam"] * 0.25) #Quantidade de sensores que irão mandar mensagem por ciclo.
+    firstDead = 0 #Variável que irá nos informar quando ocorreu a primeira morte.
 
 
 """ ------------- ÁRVORE GERADORA MÍNIMA ------------- """
