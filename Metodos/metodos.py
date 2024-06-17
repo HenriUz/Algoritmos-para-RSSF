@@ -94,11 +94,11 @@ def Union_Set(vertice_1, vertice_2, verticePrinc, valorVertice):
 
 """
 Descrição: Obtém as arestas da árvore geradora mínima partir da matriz de adjacências de um grafo ponderado através do algoritmo de Kruskal.
-Entrada: matriz de adjacências (tipo numpy.ndarray)
-Saída: sequência de arestas correspondente a árvore geradora mínima (tipo List) e inteiro representando o custo da árvore geradora mínima (tipo Integer). 
-Ex. [(0, 1), (1, 2)] 5
+Entrada: Matriz de adjacência ponderada; Dicionário com as informações da rede; Tamanho da árvore (na modelagem distância é o número de elementos da matriz - 1, na modelagem cluster é 
+    a quantidade de clusters).
+Saída: Matriz de adjacência da árvore.
 """
-def kruskal(matriz, rssf):
+def kruskal(matriz, rssf, tamanho):
     #Variáveis principais.
     T = [] #Conjunto de arestas da árvore mínima
     H = [] #Conjunto de todas as arestas ordenadas por peso
@@ -117,7 +117,7 @@ def kruskal(matriz, rssf):
     H = sorted(H, key=lambda item: item[2]) #Ordenando as arestas pelo item 2 (o peso)
 
     #Formando a árvore mínima.
-    while len(T) < len(matriz) - 1:
+    while len(T) < tamanho:
         for aresta in H:
             #Se o principal de dois vértices forem o mesmo, significa que eles estão no mesmo sub-conjunto, e adicionar uma aresta entre eles formaria ciclo.
             if Find_Set(aresta[0], verticePrinc) != Find_Set(aresta[1], verticePrinc):
