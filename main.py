@@ -1,5 +1,4 @@
 import numpy as np
-import random as rd
 from Metodos import metodos as met
 from Modelagens import distancia as dist, clusters as clu
 
@@ -40,9 +39,6 @@ Saída: Nada.
 """
 def main():
     rssf = leCoordenadas() #Dicionário com as informações da rede.
-
-    """ Montando a matriz inicial. """
-    matriz = np.zeros((rssf["tam"] + 1, rssf["tam"] + 1), dtype="float64")
     
     """ Imprimindo informações --> Remover quando estiver finalizado. """
     #print(f"Tamanho: {rssf["tam"]}")
@@ -57,6 +53,9 @@ def main():
         for sensor in range(1, rssf["tam"] + 1):
             rssf[sensor] = dist.Sensor(sensor, rssf[sensor][0], rssf[sensor][1])
         
+        """ Montando a matriz inicial. """
+        matriz = np.zeros((rssf["tam"] + 1, rssf["tam"] + 1), dtype="float64")
+
         """ Calculando os vizinhos de cada sensor e atualizando a matriz """
         for i in range(1, rssf["tam"] + 1):
             rssf[i].calcVizinhos(rssf)
@@ -76,8 +75,29 @@ def main():
         else:
             dist.startAG(matriz, rssf)
     else:
+        #Montando as regiões de cada cluster e informando qual sensor será o cluster.
         clusters, regioes = clu.montaKMeans(rssf)
         print(clusters)
+        print(regioes)
+        for regiao in regioes:
+            x = rssf[clusters[regiao]][0]
+            y = rssf[clusters[regiao]][1]
+            rssf[clusters[regiao]] = clu.Cluster(clusters[regiao], x, y)
+            for sensor in regioes[regiao]:
+                if sensor != clusters[regiao] - 1:
+                    x = rssf[sensor + 1][0]
+                    y = rssf[sensor + 1][1]
+                    rssf[sensor + 1] = clu.Sensor(sensor + 1, x, y, clusters[regiao])
+        for cluster in range(len(clusters)):
+            rssf[clusters[cluster]].calcVizinhos(rssf, regioes[cluster], clusters)
+        for cluster in clusters:
+            print(f"Cluster {rssf[cluster].identidade} - {rssf[cluster].x} - {rssf[cluster].y}")
+            print(rssf[cluster].clustersViz)
+            print("Sensores: ")
+            for sensor in rssf[cluster].sensoresViz:
+                print(f"Sensor {rssf[sensor].identidade} - {rssf[sensor].x} - {rssf[sensor].y} - {rssf[cluster].sensoresViz[sensor]}")
+            print()
+
 
 if __name__ == "__main__":
     main()
