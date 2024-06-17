@@ -13,7 +13,7 @@ class Cluster():
         self.__identidade = identidade
         self.__x = x
         self.__y = y
-        self.__alcance = 300
+        self.__alcance = 350
         self.__bateria = 2500
         self.__clustersViz = {}
         self.__bateriaClu = {}
@@ -65,23 +65,80 @@ class Cluster():
     def menorCaminho(self, mCaminho):
         self.__menorCaminho = mCaminho
 
-    def calcVizinhos(self, rssf, vizinhos):
+    def calcVizinhos(self, rssf, vizinhos, clusters):
         #Calculando a distância até a estação rádio-base usando teorema de pitágoras (c² = a² + b²).
         dist = math.sqrt(((self.x - rssf["ERB"][0])**2) + ((self.y - rssf["ERB"][1])**2))
         #Verificando se está no alcance so sensor.
         if dist <= self.alcance:
             self.__clustersViz["ERB"] = dist
 
+        #Calculando a distância até seus sensores vizinhos.
+        vizinhos.remove(self.identidade - 1)
+        for sensores in vizinhos:
+            self.__sensoresViz[sensores + 1] = math.sqrt(((self.x - rssf[sensores + 1].x)**2) + ((self.y - rssf[sensores + 1].y)**2))
+            self.__bateriaSen[sensores + 1] = self.bateria
         
-        vizinhos.remove(self.identidade)
-        self.__sensoresViz = vizinhos
+        #Calculando a distância até seus clusters vizinhos.
+        for cluster in clusters:
+            if cluster != self.identidade:
+                dist = math.sqrt(((self.x - rssf[cluster].x)**2) + ((self.y - rssf[cluster].y)**2))
+                if dist <= self.alcance:
+                    self.__clustersViz[cluster] = dist
+                    self.__bateriaClu[cluster] = self.bateria
+
+
+class Sensor():
+    def __init__(self, identidade, x, y, cluster):
+        self.__identidade = identidade
+        self.__x = x
+        self.__y = y
+        self.__alcance = 300
+        self.__bateria = 2500
+        self.__cluster = cluster
+        self.__bateriaClu = 2500
+    
+    @property
+    def identidade(self):
+        return self.__identidade
+    
+    @property
+    def x(self):
+        return self.__x
+    
+    @property
+    def y(self):
+        return self.__y
+    
+    @property
+    def alcance(self):
+        return self.__alcance
+    
+    @property
+    def bateria(self):
+        return self.__bateria
+    
+    @bateria.setter
+    def bateria(self, valor):
+        self.__bateria = valor
+    
+    @property
+    def cluster(self):
+        return self.__cluster
+    
+    @property
+    def bateriaClu(self):
+        return self.__bateriaClu
+    
+    @bateriaClu.setter
+    def bateriaClu(self, valor):
+        self.__bateriaClu = valor
         
         
 
 """
 Descrição: Função que com base nos sensores da rssf, cria regiões de clusters.
 Entrada: Dicionário com as informações da rede.
-Saída: Lista com os índices dos sensores que se tornarão clusters.
+Saída: Lista com os índices dos sensores que se tornarão clusters; Dicionário com os sensores de cada região.
 """
 def montaKMeans(rssf):
     sensores = [] #Lista que armazena as coordenadas (x, y) de cada sensor. O índice da lista é a identidade do sensor - 1.
@@ -110,7 +167,7 @@ def montaKMeans(rssf):
 """
 Descrição: Função que com base nas regiões e coordenadas dos sensores, identifica qual sensor da região se qualifica como cluster (está no alcance de todos os outros).
 Entrada: Dicionário com as informações da rede; Dicionário com os sensores de cada região; Lista com as coordenadas de cada sensor.
-Saída: Lista com os sensores qualificados para clusters de cada região (o valor representa a identidade - 1); Dicionário com os sensores de cada região.
+Saída: Lista com os sensores qualificados para clusters de cada região; Dicionário com os sensores de cada região.
 """
 def encontraCluster(rssf, regioes, sensores):
     clusters = [] #Lista de clusters qualificados.
@@ -127,6 +184,6 @@ def encontraCluster(rssf, regioes, sensores):
                 distancia = (math.sqrt((sensores[s1][0] - sensores[s2][0])**2 + (sensores[s1][1] - sensores[s2][1])**2))
                 if distancia > 300 and s2 not in nClusters:
                     nClusters.append(s2)
-        clusters.append(list(set(regioes[regiao]) - set(nClusters))[0])
+        clusters.append(list(set(regioes[regiao]) - set(nClusters))[0] + 1)
     return clusters, regioes
 
