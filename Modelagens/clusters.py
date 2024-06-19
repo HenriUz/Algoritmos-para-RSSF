@@ -271,14 +271,14 @@ def enviaMensagem(rssf, envia, tipo):
                     if rssf[cluster].menorCaminho[i + 1] == 0:
                         #Enviando para a ERB.
                         if tipo:
-                            rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * rssf[caminho].clusterViz["ERB"])))
+                            rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * rssf[caminho].clustersViz["ERB"])))
                         else:
                             dist = math.sqrt((rssf[caminho].x - rssf["ERB"][0])**2 + (rssf[caminho].y - rssf["ERB"][1])**2)
-                        rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * dist)))
+                            rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * dist)))
                     else:
                         #Enviando para o sensor do próximo cluster do menor caminho.
                         if tipo:
-                            dist = rssf[caminho].clusterViz[rssf[cluster].menorCaminho[i + 1]] #Pegando a distância do cluster atual até o próximo cluster do menor caminho.
+                            dist = rssf[caminho].clustersViz[rssf[cluster].menorCaminho[i + 1]] #Pegando a distância do cluster atual até o próximo cluster do menor caminho.
                         else:
                             dist = math.sqrt((rssf[caminho].x - rssf[rssf[cluster].menorCaminho[i + 1]].x)**2 + (rssf[caminho].y - rssf[rssf[cluster].menorCaminho[i + 1]].y)**2)
                         rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * dist)))
@@ -329,15 +329,14 @@ def todosEnviam(rssf, clusters, sensores, tipo):
                     if rssf[cluster].menorCaminho[i + 1] == 0:
                         #Enviando para a ERB.
                         if tipo:
-                            
-                            dist = rssf[caminho].clusterViz[rssf[cluster].menorCaminho[i + 1]] #Pegando a distância do sensor atual até o próximo sensor do menor caminho.
+                            rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * rssf[caminho].clustersViz["ERB"]))) #Pegando a distância do sensor atual até o próximo sensor do menor caminho.
                         else:
                             dist = math.sqrt((rssf[caminho].x - rssf["ERB"][0])**2 + (rssf[caminho].y - rssf["ERB"][1])**2)
-                        rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * dist)))
+                            rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * dist)))
                     else:
                         #Enviando para o próximo sensor do menor caminho.
                         if tipo:
-                            dist = rssf[caminho].clusterViz[rssf[cluster].menorCaminho[i + 1]] #Pegando a distância do sensor atual até o próximo sensor do menor caminho.
+                            dist = rssf[caminho].clustersViz[rssf[cluster].menorCaminho[i + 1]] #Pegando a distância do sensor atual até o próximo sensor do menor caminho.
                         else:
                             dist = math.sqrt((rssf[caminho].x - rssf[rssf[cluster].menorCaminho[i + 1]].x)**2 + (rssf[caminho].y - rssf[rssf[cluster].menorCaminho[i + 1]].y)**2)
                         rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * dist)))
