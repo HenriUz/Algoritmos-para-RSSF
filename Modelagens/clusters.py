@@ -8,7 +8,7 @@ from Metodos import metodos as met
 """ ------------- CLASSES ------------- """
 
 
-#Class que vai representar um cluster
+#Classe que representa um cluster na rede.
 class Cluster():
     def __init__(self, identidade, x, y):
         self.__identidade = identidade
@@ -70,6 +70,11 @@ class Cluster():
     def menorCaminho(self, mCaminho):
         self.__menorCaminho = mCaminho
 
+    """
+    Descrição: Função que salva os sensores de cada cluster, e calcula os clusters vizinhos.
+    Entrada: Dicionário com as informações da rede; Lista com os sensores em cada região de cluster; Lista com os clusters.
+    Saída: Nada.
+    """
     def calcVizinhos(self, rssf, vizinhos, clusters):
         #Calculando a distância até a estação rádio-base usando teorema de pitágoras (c² = a² + b²).
         dist = math.sqrt(((self.x - rssf["ERB"][0])**2) + ((self.y - rssf["ERB"][1])**2))
@@ -91,6 +96,11 @@ class Cluster():
                     self.__clustersViz[cluster] = dist
                     self.__bateriaClu[cluster] = self.bateria
 
+    """
+    Descrição: Função que simula o envio de uma mensagem de um cluster para outros clusters informando sua bateria.
+    Entrada: Dicionário com as informações da rede.
+    Saída: Nada.
+    """
     def informaVizinhos(self, rssf):
         for cluster in self.clustersViz:
             if cluster != "ERB" and self.bateria > 0:
@@ -99,7 +109,7 @@ class Cluster():
                     rssf[cluster].bateria = rssf[cluster].bateria - 0.00164
                     rssf[cluster].bateriaClu[self.identidade] = self.bateria
 
-
+#Classe que representa um sensor na rede.
 class Sensor():
     def __init__(self, identidade, x, y, cluster):
         self.__identidade = identidade
@@ -146,6 +156,11 @@ class Sensor():
     def bateriaClu(self, valor):
         self.__bateriaClu = valor
     
+    """
+    Descrição: Função que simula o envio de uma mensagem do sensor para o cluster informando sua bateria.
+    Entrada: Dicionário com as informações da rede.
+    Saída: Nada.
+    """
     def informaCluster(self, rssf):
         if self.bateria > 0:
             dist = math.sqrt((self.x - rssf[self.cluster].x) ** 2 + (self.y - rssf[self.cluster].y) ** 2)
@@ -176,14 +191,6 @@ def montaKMeans(rssf):
     regioes = dict([i, []] for i in range(int(rssf["tam"] * 0.2)))
     for i in range(len(label)):
         regioes[label[i]].append(i)
-    
-    """plt.figure(figsize=(8, 6))
-    plt.scatter(sensores[:, 0], sensores[:, 1], c=label, cmap='viridis', s=50, alpha=0.7)
-    plt.title('Clusters de Sensores usando K-Means')
-    plt.xlabel('Coordenada X')
-    plt.ylabel('Coordenada Y')
-    plt.colorbar(label='Cluster')
-    plt.show()"""
 
     return encontraCluster(rssf, regioes, sensores)
 
@@ -232,7 +239,7 @@ Descrição: Função que simula o envio de uma mensagem de um sensor até a est
 Entrada: Dicionário com as informações da rede; Sensores/Clusters que irão enviar a mensagem.
 Saída: Lista com todos os sensores que conseguiram enviar a mensagem.
 """
-def enviaMensagem(rssf, envia):
+def enviaMensagem(rssf, envia, tipo):
     mensagem = [] # Lista com os sensores que enviaram a mensagem.
     clusters = [] # Lista com os clusters presentes na lista envia.
 
@@ -270,10 +277,17 @@ def enviaMensagem(rssf, envia):
                     #Verificando para quem o sensor vai enviar a mensagem.
                     if rssf[cluster].menorCaminho[i + 1] == 0:
                         #Enviando para a ERB.
-                        rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * rssf[caminho].clustersViz["ERB"])))
+                        if tipo:
+                            rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * rssf[caminho].clustersViz["ERB"])))
+                        else:
+                            dist = math.sqrt((rssf[caminho].x - rssf["ERB"][0])**2 + (rssf[caminho].y - rssf["ERB"][1])**2)
+                            rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * dist)))
                     else:
-                        #Enviando para o próximo sensor do menor caminho.
-                        dist = rssf[caminho].clustersViz[rssf[cluster].menorCaminho[i + 1]]
+                        #Enviando para o sensor do próximo cluster do menor caminho.
+                        if tipo:
+                            dist = rssf[caminho].clustersViz[rssf[cluster].menorCaminho[i + 1]] #Pegando a distância do cluster atual até o próximo cluster do menor caminho.
+                        else:
+                            dist = math.sqrt((rssf[caminho].x - rssf[rssf[cluster].menorCaminho[i + 1]].x)**2 + (rssf[caminho].y - rssf[rssf[cluster].menorCaminho[i + 1]].y)**2)
                         rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * dist)))
                 #Se a bateria do sensor é menor que zero, não tem como continuar o processo de envio deste caminho.
                 elif caminho != 0 and rssf[caminho].bateria < 0:
@@ -288,7 +302,7 @@ Descrição: Função que simula o envio de uma mensagem de todos os sensores at
 Entrada: Dicionário com as informações da rede; Lista com os clusters; Lista com os sensores.
 Saída: Lista com todos os sensores que conseguiram enviar a mensagem.
 """
-def todosEnviam(rssf, clusters, sensores):
+def todosEnviam(rssf, clusters, sensores, tipo):
     mensagem = [] # Lista com os sensores que enviaram a mensagem
 
     """ Iniciando o processo de envio das mensagens. """
@@ -321,16 +335,22 @@ def todosEnviam(rssf, clusters, sensores):
                     #Verificando para quem o sensor vai enviar a mensagem.
                     if rssf[cluster].menorCaminho[i + 1] == 0:
                         #Enviando para a ERB.
-                        rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * rssf[caminho].clustersViz["ERB"])))
+                        if tipo:
+                            rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * rssf[caminho].clustersViz["ERB"]))) #Pegando a distância do sensor atual até o próximo sensor do menor caminho.
+                        else:
+                            dist = math.sqrt((rssf[caminho].x - rssf["ERB"][0])**2 + (rssf[caminho].y - rssf["ERB"][1])**2)
+                            rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * dist)))
                     else:
                         #Enviando para o próximo sensor do menor caminho.
-                        dist = rssf[caminho].clustersViz[rssf[cluster].menorCaminho[i + 1]]
+                        if tipo:
+                            dist = rssf[caminho].clustersViz[rssf[cluster].menorCaminho[i + 1]] #Pegando a distância do sensor atual até o próximo sensor do menor caminho.
+                        else:
+                            dist = math.sqrt((rssf[caminho].x - rssf[rssf[cluster].menorCaminho[i + 1]].x)**2 + (rssf[caminho].y - rssf[rssf[cluster].menorCaminho[i + 1]].y)**2)
                         rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * dist)))
                 #Se a bateria do sensor é menor que zero, não tem como continuar o processo de envio deste caminho.
                 elif caminho != 0 and rssf[caminho].bateria < 0:
                     break
                 i+=1
-
     return mensagem
 
 
@@ -375,7 +395,7 @@ def startMC(matriz, rssf, clusters):
             var_10 += 10
         #A cada 20 ciclos, todos os sensores deverão enviar uma mensagem para a ERB.
         if ciclo == var_20:
-            mensagem = todosEnviam(rssf, clusters, sensores)
+            mensagem = todosEnviam(rssf, clusters, sensores, True)
             #Se a quantidade de sensores que conseguiram enviar uma mensagem for menor do que a quantidade total de sensores, então um sensor morreu e a ERB identificou.
             if len(mensagem) != rssf["tam"]:
                 condicao = 0
@@ -388,7 +408,74 @@ def startMC(matriz, rssf, clusters):
                 if aleatorio not in envia:
                     envia.append(aleatorio)
             #Enviando a mensagem.
-            mensagem = enviaMensagem(rssf, envia)
+            mensagem = enviaMensagem(rssf, envia, True)
+            #Se a quantidade de sensores que conseguiram enviar suas mensagens for menor do que a quantidade estabelecida, a primeira morte aconteceu.
+            if len(mensagem) < qnt and firstDead == 0:
+                firstDead = ciclo
+    print(ciclo, firstDead)
+    return ciclo
+
+
+""" ------------- MENOR CAMINHO COM SALTO ------------- """
+
+
+"""
+Descrição: Função responsável por simular os ciclos dos sensores na rede na modelagem de clusters com o método de menor caminho com salto.
+Entrada: A matriz de adjacência ponderada inicial; Dicionário com as informações da rede; Lista com os clusters.
+Saída: Ciclo no qual a estação rádio-base identificou uma morte.
+"""
+def startMS(matriz, rssf, clusters):
+    """ Variáveis principais """
+    ciclo = 0 #Ciclo
+    condicao = 1 #Condição de parada dos ciclos -> ERB identificou uma morte
+    var_10 = 10 #Variável que irá informar quando recalcular as distâncias dos vizinhos.
+    var_20 = 20 #Variável que irá informar quando todos os sensores irão enviar uma mensagem para ERB.
+    qnt = int(rssf["tam"] * 0.25) #Quantidade de sensores que irão mandar mensagem por ciclo.
+    firstDead = 0 #Variável que irá nos informar quando ocorreu a primeira morte.
+    sensores = list(set([i for i in range(1, rssf["tam"] + 1)]) - set(clusters)) #Todos os sensores que não são clusters.
+
+    #Calculando os menores caminhos de cada sensor.
+    for cluster in clusters:
+        menorCaminho = met.dijkstra(matriz, cluster, 0)
+        rssf[cluster].menorCaminho = menorCaminho[0::2]
+        if rssf[cluster].menorCaminho[(len(rssf[cluster].menorCaminho) - 1)] != menorCaminho[len(menorCaminho) - 1]:
+            rssf[cluster].menorCaminho.append(menorCaminho[len(menorCaminho) - 1])
+    while condicao:
+        envia = [] #Lista que conterá os sensores que irão enviar a mensagem
+        mensagem = [] #Lista que conterá quais sensores conseguiram enviar suas mensagens
+        ciclo += 1
+        #A cada 10 ciclos, todos os sensores deverão informar os seus vizinhos suas novas baterias
+        if ciclo == var_10:
+            #Atualizando as baterias.
+            for sensor in sensores:
+                rssf[sensor].informaCluster(rssf)
+            for cluster in clusters:
+                rssf[cluster].informaVizinhos(rssf)
+            #Atualizando a matriz.
+            atualizaMatriz(rssf, matriz, clusters)
+            #Atualizando os menores caminhos.
+            for cluster in clusters:
+                menorCaminho = met.dijkstra(matriz, cluster, 0)
+                rssf[cluster].menorCaminho = menorCaminho[0::2]
+                if rssf[cluster].menorCaminho[(len(rssf[cluster].menorCaminho) - 1)] != menorCaminho[len(menorCaminho) - 1]:
+                    rssf[cluster].menorCaminho.append(menorCaminho[len(menorCaminho) - 1])
+            var_10 += 10
+        #A cada 20 ciclos, todos os sensores deverão enviar uma mensagem para a ERB.
+        if ciclo == var_20:
+            mensagem = todosEnviam(rssf, clusters, sensores, False)
+            #Se a quantidade de sensores que conseguiram enviar uma mensagem for menor do que a quantidade total de sensores, então um sensor morreu e a ERB identificou.
+            if len(mensagem) != rssf["tam"]:
+                condicao = 0
+            var_20 += 20
+        #Se não acontecer nenhum dos dois anteriores, sensores aleatórios irão enviar uma mensagem.
+        elif ciclo != var_10:
+            #Gerando os sensores, sem repetir.
+            while len(envia) < qnt:
+                aleatorio = rd.randint(1, rssf["tam"])
+                if aleatorio not in envia:
+                    envia.append(aleatorio)
+            #Enviando a mensagem.
+            mensagem = enviaMensagem(rssf, envia, False)
             #Se a quantidade de sensores que conseguiram enviar suas mensagens for menor do que a quantidade estabelecida, a primeira morte aconteceu.
             if len(mensagem) < qnt and firstDead == 0:
                 firstDead = ciclo
@@ -461,7 +548,7 @@ def startAG(matriz, rssf, clusters):
             var_10 += 10
         #A cada 20 ciclos, todos os sensores deverão enviar uma mensagem para a ERB.
         if ciclo == var_20:
-            mensagem = todosEnviam(rssf, clusters, sensores)
+            mensagem = todosEnviam(rssf, clusters, sensores, True)
             #Se a quantidade de sensores que conseguiram enviar uma mensagem for menor do que a quantidade total de sensores, então um sensor morreu e a ERB identificou.
             if len(mensagem) != rssf["tam"]:
                 condicao = 0
@@ -474,7 +561,7 @@ def startAG(matriz, rssf, clusters):
                 if aleatorio not in envia:
                     envia.append(aleatorio)
             #Enviando a mensagem.
-            mensagem = enviaMensagem(rssf, envia)
+            mensagem = enviaMensagem(rssf, envia, True)
             #Se a quantidade de sensores que conseguiram enviar suas mensagens for menor do que a quantidade estabelecida, a primeira morte aconteceu.
             if len(mensagem) < qnt and firstDead == 0:
                 firstDead = ciclo
