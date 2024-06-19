@@ -115,7 +115,7 @@ def main():
             #print(type(rssf[clusters[0]]))
             clu.startMC(matriz, rssf, clusters)
         elif resp == 2:
-            dist.startMS(matriz, rssf)
+            clu.startMS(matriz, rssf, clusters)
         else:
             clu.startAG(matriz, rssf, clusters)
 
