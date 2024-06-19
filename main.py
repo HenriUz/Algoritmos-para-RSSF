@@ -9,7 +9,7 @@ Entrada: Nada.
 Saída: Dicionário onde tam é a chave para o tamanho, ERB é a chave para um tupla com as coordenadas da estação rádio-base, o resto são números (iniciando do 1)
     que guardam as coordenadas dos sensores.
 """
-def leCoordenadas():
+def leCoordenadas(resp):
     """ Variáveis principais """
     rssf = {} #Dicionário da rede
     arquivo = f"C:\\Users\\Usuario\\Documents\\01 - Universidade\\3 - Periodo\\CMAC03 - Algoritmos em Grafos\\Trabalho\\Coordenadas\\Rede {resp}.txt" #Caminho
@@ -38,13 +38,8 @@ Entrada: Nada.
 Saída: Nada.
 """
 def main():
-    rssf = leCoordenadas() #Dicionário com as informações da rede.
-    
-    """ Imprimindo informações --> Remover quando estiver finalizado. """
-    #print(f"Tamanho: {rssf["tam"]}")
-    #print(f"Estação rádio-base: {rssf["ERB"]}")
-    #for i in range(1, rssf["tam"] + 1):
-    #    print(f"{rssf[i].identidade} - X: {rssf[i].x}, Y: {rssf[i].y}")
+    resp = input("Qual dataset você deseja ler? ")
+    rssf = leCoordenadas(resp) #Dicionário com as informações da rede.
 
     """ Montando a matriz inicial. """
     matriz = np.zeros((rssf["tam"] + 1, rssf["tam"] + 1), dtype="float64")
@@ -69,16 +64,14 @@ def main():
         print("Métodos: 1 - Menor Caminho; 2 - Menor Caminho com Salto; 3 - Árvore Geradora Mínima")
         resp = int(input("Sua resposta: "))
         if resp == 1:
-            dist.startMC(matriz, rssf)
+            print(dist.startMC(matriz, rssf))
         elif resp == 2:
-            dist.startMS(matriz, rssf)
+            print(dist.startMS(matriz, rssf))
         else:
-            dist.startAG(matriz, rssf)
+            print(dist.startAG(matriz, rssf))
     else:
         """ Montando as regiões de cada cluster e informando qual sensor será o cluster. """
         clusters, regioes = clu.montaKMeans(rssf)
-        print(clusters)
-        print(regioes)
 
         """ Atualizando o dicionário com as informações da rede, para ele começar a guardar os objetos. """
         #Percorrendo as regiões.
@@ -100,24 +93,15 @@ def main():
                 else:
                     matriz[clusters[cluster]][vizC] = rssf[clusters[cluster]].clustersViz[vizC]
 
-        """for cluster in clusters:
-            print(f"Cluster {rssf[cluster].identidade} - {rssf[cluster].x} - {rssf[cluster].y}")
-            print(rssf[cluster].clustersViz)
-            print("Sensores: ")
-            for sensor in rssf[cluster].sensoresViz:
-                print(f"Sensor {rssf[sensor].identidade} - {rssf[sensor].x} - {rssf[sensor].y} - {rssf[cluster].sensoresViz[sensor]}")
-            print()"""
-
         """ Chamando os métodos """
         print("Métodos: 1 - Menor Caminho; 2 - Menor Caminho com Salto; 3 - Árvore Geradora Mínima")
         resp = int(input("Sua resposta: "))
         if resp == 1:
-            #print(type(rssf[clusters[0]]))
-            clu.startMC(matriz, rssf, clusters)
+            print(clu.startMC(matriz, rssf, clusters))
         elif resp == 2:
-            dist.startMS(matriz, rssf)
+            print(clu.startMS(matriz, rssf, clusters))
         else:
-            clu.startAG(matriz, rssf, clusters)
+            print(clu.startAG(matriz, rssf, clusters))
 
 
 if __name__ == "__main__":
