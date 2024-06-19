@@ -433,7 +433,6 @@ def startMS(matriz, rssf, clusters):
         rssf[cluster].menorCaminho = menorCaminho[0::2]
         if rssf[cluster].menorCaminho[(len(rssf[cluster].menorCaminho) - 1)] != menorCaminho[len(menorCaminho) - 1]:
             rssf[cluster].menorCaminho.append(menorCaminho[len(menorCaminho) - 1])
-        print(rssf[cluster].menorCaminho)
     while condicao:
         envia = [] #Lista que conterá os sensores que irão enviar a mensagem
         mensagem = [] #Lista que conterá quais sensores conseguiram enviar suas mensagens
