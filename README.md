@@ -33,6 +33,6 @@ Os datasets que estão sendo usados para a realização dos testes, a primeira l
 | Ciclos     | Caminho Mínimo | Caminho Mínimo com Salto | Arvore Geradora Mínima |
 |------------|----------------|--------------------------|------------------------|
 | 50 Motes   | 250580         | 412420                   | 265040                 |
-| 100 Motes  | -----          | -----                    | -----                  |
-| 200 Motes  | -----          | -----                    | -----                  |
-| 400 Motes  | -----          | -----                    | -----                  |
+| 100 Motes  | -----          | -----                    | 215900                 |
+| 200 Motes  | -----          | -----                    | 129460                 |
+| 400 Motes  | -----          | -----                    | 91760                  |
