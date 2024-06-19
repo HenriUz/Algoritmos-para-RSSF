@@ -223,7 +223,6 @@ def startMC(matriz, rssf):
     #Calculando os menores caminhos de cada sensor.
     for sensor in range(1, rssf["tam"] + 1):
         rssf[sensor].menorCaminho = met.dijkstra(matriz, sensor, 0)
-        print(rssf[sensor].menorCaminho)
 
     """ Iniciando os ciclos """
     while condicao:
@@ -260,12 +259,8 @@ def startMC(matriz, rssf):
             #Se a quantidade de sensores que conseguiram enviar suas mensagens for menor do que a quantidade estabelecida, a primeira morte aconteceu.
             if len(mensagem) < qnt and firstDead == 0:
                 firstDead = ciclo
-        """for s in rssf:
-            if s != "tam" and s != "ERB":
-                print(rssf[s].bateria)
-        print()"""
-    print(ciclo, firstDead)
-    return ciclo
+
+    return ciclo, firstDead
 
 
 """ ------------- MENOR CAMINHO COM SALTO ------------- """
@@ -277,7 +272,6 @@ def startMS(matriz, rssf):
     var_20 = 20 #Variável que irá informar quando todos os sensores irão enviar uma mensagem para ERB.
     qnt = int(rssf["tam"] * 0.25) #Quantidade de sensores que irão mandar mensagem por ciclo.
     firstDead = 0 #Variável que irá nos informar quando ocorreu a primeira morte.
-    teste = 1000
 
     #Calculando os menores caminhos de cada sensor.
     for sensor in range(1, rssf["tam"] + 1):
@@ -285,8 +279,6 @@ def startMS(matriz, rssf):
         rssf[sensor].menorCaminho = menorCaminho[0::2]
         if rssf[sensor].menorCaminho[(len(rssf[sensor].menorCaminho) - 1)] != menorCaminho[len(menorCaminho) - 1]:
             rssf[sensor].menorCaminho.append(menorCaminho[len(menorCaminho) - 1])
-        #print(menorCaminho)
-        #print(rssf[sensor].menorCaminho)
 
     while condicao:
         sensores = [] #Lista que conterá os sensores que irão enviar a mensagem
@@ -325,15 +317,7 @@ def startMS(matriz, rssf):
             #Se a quantidade de sensores que conseguiram enviar suas mensagens for menor do que a quantidade estabelecida, a primeira morte aconteceu.
             if len(mensagem) < qnt and firstDead == 0:
                 firstDead = ciclo
-        if ciclo == teste:
-            for s in rssf:
-                if s != "tam" and s != "ERB":
-                    print(rssf[s].bateria)
-            print()
-            teste+=1000
-
-    print(ciclo, firstDead)
-    return ciclo
+    return ciclo, firstDead
 
 """ ------------- ÁRVORE GERADORA MÍNIMA ------------- """
 
@@ -413,5 +397,4 @@ def startAG(matriz, rssf):
             #Se a quantidade de sensores que conseguiram enviar suas mensagens for menor do que a quantidade estabelecida, a primeira morte aconteceu.
             if len(mensagem) < qnt and firstDead == 0:
                 firstDead = ciclo
-    print(ciclo, firstDead)
-    return ciclo
+    return ciclo, firstDead
