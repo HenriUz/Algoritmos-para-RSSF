@@ -117,10 +117,10 @@ def atualizaMatriz(rssf, matriz):
 
 """
 Descrição: Função que simula o envio de uma mensagem de um sensor até a estação rádio-base. Quando um sensor recebe uma mensagem ele reenvia ela.
-Entrada: Dicionário com as informações da rede; Sensores que irão enviar a mensagem.
+Entrada: Dicionário com as informações da rede; Sensores que irão enviar a mensagem; Tipo de modelagem (True - Menor Caminho e Árvore; False - Salto).
 Saída: Lista com todos os sensores que conseguiram enviar a mensagem.
 """
-def enviaMensagem(rssf, sensores):
+def enviaMensagem(rssf, sensores, tipo):
     mensagem = [] # Lista com os sensores que enviaram a mensagem
 
     """ Iniciando o processo de envio das mensagens. """
@@ -140,10 +140,17 @@ def enviaMensagem(rssf, sensores):
                 #Verificando para quem o sensor vai enviar a mensagem.
                 if rssf[sensor].menorCaminho[i + 1] == 0:
                     #Enviando para a ERB.
-                    rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * rssf[caminho].vizinhos["ERB"])))
+                    if tipo:
+                        rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * rssf[caminho].vizinhos["ERB"])))
+                    else:
+                        dist = math.sqrt((rssf[caminho].x - rssf["ERB"][0])**2 + (rssf[caminho].y - rssf["ERB"][1])**2)
+                        rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * dist)))
                 else:
                     #Enviando para o próximo sensor do menor caminho.
-                    dist = rssf[caminho].vizinhos[rssf[sensor].menorCaminho[i + 1]] #Pegando a distância do sensor atual até o próximo sensor do menor caminho.
+                    if tipo:
+                        dist = rssf[caminho].vizinhos[rssf[sensor].menorCaminho[i + 1]] #Pegando a distância do sensor atual até o próximo sensor do menor caminho.
+                    else:
+                        dist = math.sqrt((rssf[caminho].x - rssf[rssf[sensor].menorCaminho[i + 1]].x)**2 + (rssf[caminho].y - rssf[rssf[sensor].menorCaminho[i + 1]].y)**2)
                     rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * dist)))
             #Se a bateria do sensor é menor que zero, não tem como continuar o processo de envio deste caminho.
             elif caminho != 0 and rssf[caminho].bateria < 0:
@@ -153,10 +160,10 @@ def enviaMensagem(rssf, sensores):
 
 """
 Descrição: Função que simula o envio de uma mensagem de todos os sensores até a estação rádio-base. Quando um sensor recebe uma mensagem ele reenvia ela.
-Entrada: Dicionário com as informações da rede.
+Entrada: Dicionário com as informações da rede; Tipo de modelagem (True - Menor Caminho e Árvore; False - Salto).
 Saída: Lista com todos os sensores que conseguiram enviar a mensagem.
 """
-def todosEnviam(rssf):
+def todosEnviam(rssf, tipo):
     mensagem = [] # Lista com os sensores que enviaram a mensagem
 
     """ Iniciando o processo de envio das mensagens. """
@@ -177,10 +184,17 @@ def todosEnviam(rssf):
                     #Verificando para quem o sensor vai enviar a mensagem.
                     if rssf[sensor].menorCaminho[i + 1] == 0:
                         #Enviando para a ERB.
-                        rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * rssf[caminho].vizinhos["ERB"])))
+                        if tipo:
+                            rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * rssf[caminho].vizinhos["ERB"])))
+                        else:
+                            dist = math.sqrt((rssf[caminho].x - rssf["ERB"][0])**2 + (rssf[caminho].y - rssf["ERB"][1])**2)
+                            rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * dist)))
                     else:
                         #Enviando para o próximo sensor do menor caminho.
-                        dist = rssf[caminho].vizinhos[rssf[sensor].menorCaminho[i + 1]] #Pegando a distância do sensor atual até o próximo sensor do menor caminho.
+                        if tipo:
+                            dist = rssf[caminho].vizinhos[rssf[sensor].menorCaminho[i + 1]] #Pegando a distância do sensor atual até o próximo sensor do menor caminho.
+                        else:
+                            dist = math.sqrt((rssf[caminho].x - rssf[rssf[sensor].menorCaminho[i + 1]].x)**2 + (rssf[caminho].y - rssf[rssf[sensor].menorCaminho[i + 1]].y)**2)
                         rssf[caminho].bateria = rssf[caminho].bateria - (0.025 * (0.1 + (0.0001 * dist)))
                 #Se a bateria do sensor é menor que zero, não tem como continuar o processo de envio deste caminho.
                 elif caminho != 0 and rssf[caminho].bateria < 0:
@@ -209,7 +223,6 @@ def startMC(matriz, rssf):
     #Calculando os menores caminhos de cada sensor.
     for sensor in range(1, rssf["tam"] + 1):
         rssf[sensor].menorCaminho = met.dijkstra(matriz, sensor, 0)
-        print(rssf[sensor].menorCaminho)
 
     """ Iniciando os ciclos """
     while condicao:
@@ -229,7 +242,7 @@ def startMC(matriz, rssf):
             var_10 += 10
         #A cada 20 ciclos, todos os sensores deverão enviar uma mensagem para a ERB.
         if ciclo == var_20:
-            mensagem = todosEnviam(rssf)
+            mensagem = todosEnviam(rssf, True)
             #Se a quantidade de sensores que conseguiram enviar uma mensagem for menor do que a quantidade total de sensores, então um sensor morreu e a ERB identificou.
             if len(mensagem) != rssf["tam"]:
                 condicao = 0
@@ -242,26 +255,15 @@ def startMC(matriz, rssf):
                 if aleatorio not in sensores:
                     sensores.append(aleatorio)
             #Enviando a mensagem.
-            mensagem = enviaMensagem(rssf, sensores)
+            mensagem = enviaMensagem(rssf, sensores, True)
             #Se a quantidade de sensores que conseguiram enviar suas mensagens for menor do que a quantidade estabelecida, a primeira morte aconteceu.
             if len(mensagem) < qnt and firstDead == 0:
                 firstDead = ciclo
-        """for s in rssf:
-            if s != "tam" and s != "ERB":
-                print(rssf[s].bateria)
-        print()"""
-    print(ciclo, firstDead)
-    return ciclo
+
+    return ciclo, firstDead
 
 
 """ ------------- MENOR CAMINHO COM SALTO ------------- """
-
-
-"""
-Descrição: Função responsável por simular os ciclos dos sensores na rede na modelagem de distância com o método de menor caminho com salto.
-Entrada: A matriz de adjacência ponderada inicial; Dicionário com as informações da rede.
-Saída: Ciclo no qual a estação rádio-base identificou uma morte.
-"""
 def startMS(matriz, rssf):
     """ Variáveis principais """
     ciclo = 0 #Ciclo
@@ -273,24 +275,10 @@ def startMS(matriz, rssf):
 
     #Calculando os menores caminhos de cada sensor.
     for sensor in range(1, rssf["tam"] + 1):
-        rssf[sensor].menorCaminho = met.dijkstra(matriz, sensor, 0)
-        if len(rssf[sensor].menorCaminho) > 2:
-            aux = []
-            contador = 0
-            if len(rssf[sensor].menorCaminho)%2 == 1:
-                while contador*2 < len(rssf[sensor].menorCaminho):
-                    aux.append(rssf[sensor].menorCaminho[contador*2])
-                    contador += 1
-                rssf[sensor].menorCaminho = aux
-                print(rssf[sensor].menorCaminho)
-            elif len(rssf[sensor].menorCaminho)%2 == 0:
-                while contador*2 < len(rssf[sensor].menorCaminho)-2:
-                    aux.append(rssf[sensor].menorCaminho[contador*2])
-                    contador += 1
-                aux.append(rssf[sensor].menorCaminho[(len(rssf[sensor].menorCaminho)-2)])
-                aux.append(rssf[sensor].menorCaminho[(len(rssf[sensor].menorCaminho)-1)])
-                rssf[sensor].menorCaminho = aux
-                print(rssf[sensor].menorCaminho)
+        menorCaminho = met.dijkstra(matriz, sensor, 0)
+        rssf[sensor].menorCaminho = menorCaminho[0::2]
+        if rssf[sensor].menorCaminho[(len(rssf[sensor].menorCaminho) - 1)] != menorCaminho[len(menorCaminho) - 1]:
+            rssf[sensor].menorCaminho.append(menorCaminho[len(menorCaminho) - 1])
 
     while condicao:
         sensores = [] #Lista que conterá os sensores que irão enviar a mensagem
@@ -305,26 +293,14 @@ def startMS(matriz, rssf):
             atualizaMatriz(rssf, matriz)
             #Atualizando os menores caminhos.
             for sensor in range(1, rssf["tam"] + 1):
-                rssf[sensor].menorCaminho = met.dijkstra(matriz, sensor, 0)
-                if len(rssf[sensor].menorCaminho) > 2:
-                    aux = []
-                    contador = 0
-                    if len(rssf[sensor].menorCaminho)%2 == 1:
-                        while contador*2 < len(rssf[sensor].menorCaminho):
-                            aux.append(rssf[sensor].menorCaminho[contador*2])
-                            contador += 1
-                        rssf[sensor].menorCaminho = aux
-                    elif len(rssf[sensor].menorCaminho)%2 == 0:
-                        while contador*2 < len(rssf[sensor].menorCaminho)-2:
-                            aux.append(rssf[sensor].menorCaminho[contador*2])
-                            contador += 1
-                        aux.append(rssf[sensor].menorCaminho[(len(rssf[sensor].menorCaminho)-2)])
-                        aux.append(rssf[sensor].menorCaminho[(len(rssf[sensor].menorCaminho)-1)])
-                        rssf[sensor].menorCaminho = aux
+                menorCaminho = met.dijkstra(matriz, sensor, 0)
+                rssf[sensor].menorCaminho = menorCaminho[0::2]
+                if rssf[sensor].menorCaminho[(len(rssf[sensor].menorCaminho) - 1)] != menorCaminho[len(menorCaminho) - 1]:
+                    rssf[sensor].menorCaminho.append(menorCaminho[len(menorCaminho) - 1])
             var_10 += 10
         #A cada 20 ciclos, todos os sensores deverão enviar uma mensagem para a ERB.
         if ciclo == var_20:
-            mensagem = todosEnviam(rssf)
+            mensagem = todosEnviam(rssf, False)
             #Se a quantidade de sensores que conseguiram enviar uma mensagem for menor do que a quantidade total de sensores, então um sensor morreu e a ERB identificou.
             if len(mensagem) != rssf["tam"]:
                 condicao = 0
@@ -337,17 +313,11 @@ def startMS(matriz, rssf):
                 if aleatorio not in sensores:
                     sensores.append(aleatorio)
             #Enviando a mensagem.
-            mensagem = enviaMensagem(rssf, sensores)
+            mensagem = enviaMensagem(rssf, sensores, False)
             #Se a quantidade de sensores que conseguiram enviar suas mensagens for menor do que a quantidade estabelecida, a primeira morte aconteceu.
             if len(mensagem) < qnt and firstDead == 0:
                 firstDead = ciclo
-        """for s in rssf:
-            if s != "tam" and s != "ERB":
-                print(rssf[s].bateria)
-        print()"""
-    print(ciclo, firstDead)
-    return ciclo
-
+    return ciclo, firstDead
 
 """ ------------- ÁRVORE GERADORA MÍNIMA ------------- """
 
@@ -410,7 +380,7 @@ def startAG(matriz, rssf):
             var_10 += 10
         #A cada 20 ciclos, todos os sensores deverão enviar uma mensagem para a ERB.
         if ciclo == var_20:
-            mensagem = todosEnviam(rssf)
+            mensagem = todosEnviam(rssf, True)
             #Se a quantidade de sensores que conseguiram enviar uma mensagem for menor do que a quantidade total de sensores, então um sensor morreu e a ERB identificou.
             if len(mensagem) != rssf["tam"]:
                 condicao = 0
@@ -423,9 +393,8 @@ def startAG(matriz, rssf):
                 if aleatorio not in sensores:
                     sensores.append(aleatorio)
             #Enviando a mensagem.
-            mensagem = enviaMensagem(rssf, sensores)
+            mensagem = enviaMensagem(rssf, sensores, True)
             #Se a quantidade de sensores que conseguiram enviar suas mensagens for menor do que a quantidade estabelecida, a primeira morte aconteceu.
             if len(mensagem) < qnt and firstDead == 0:
                 firstDead = ciclo
-    print(ciclo, firstDead)
-    return ciclo
+    return ciclo, firstDead
