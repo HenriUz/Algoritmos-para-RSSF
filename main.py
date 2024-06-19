@@ -12,7 +12,7 @@ Saída: Dicionário onde tam é a chave para o tamanho, ERB é a chave para um t
 def leCoordenadas():
     """ Variáveis principais """
     rssf = {} #Dicionário da rede
-    arquivo = "C:\\Users\\Usuario\\Documents\\01 - Universidade\\3 - Periodo\\CMAC03 - Algoritmos em Grafos\\Trabalho\\Coordenadas\\Rede 50.txt" #Caminho
+    arquivo = "C:\\Users\\M&M\\Documents\\Programação\\Python\\Frinhani\\Trabalho Final\\Algoritmos-para-RSSF\\Datasets\\Rede 50.txt" #Caminho
     sensor = 0 #Auxiliar
 
     """ Lendo o dataset """
