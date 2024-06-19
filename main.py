@@ -9,10 +9,10 @@ Entrada: Nada.
 Saída: Dicionário onde tam é a chave para o tamanho, ERB é a chave para um tupla com as coordenadas da estação rádio-base, o resto são números (iniciando do 1)
     que guardam as coordenadas dos sensores.
 """
-def leCoordenadas():
+def leCoordenadas(resp):
     """ Variáveis principais """
     rssf = {} #Dicionário da rede
-    arquivo = "C:\\Users\\Usuario\\Documents\\01 - Universidade\\3 - Periodo\\CMAC03 - Algoritmos em Grafos\\Trabalho\\Coordenadas\\Rede 50.txt" #Caminho
+    arquivo = f"C:\\Users\\Usuario\\Documents\\01 - Universidade\\3 - Periodo\\CMAC03 - Algoritmos em Grafos\\Trabalho\\Coordenadas\\Rede {resp}.txt" #Caminho
     sensor = 0 #Auxiliar
 
     """ Lendo o dataset """
@@ -38,7 +38,8 @@ Entrada: Nada.
 Saída: Nada.
 """
 def main():
-    rssf = leCoordenadas() #Dicionário com as informações da rede.
+    resp = input("Qual dataset você deseja ler? ")
+    rssf = leCoordenadas(resp) #Dicionário com as informações da rede.
     
     """ Imprimindo informações --> Remover quando estiver finalizado. """
     #print(f"Tamanho: {rssf["tam"]}")
@@ -77,8 +78,8 @@ def main():
     else:
         """ Montando as regiões de cada cluster e informando qual sensor será o cluster. """
         clusters, regioes = clu.montaKMeans(rssf)
-        print(clusters)
-        print(regioes)
+        #print(clusters)
+        #print(regioes)
 
         """ Atualizando o dicionário com as informações da rede, para ele começar a guardar os objetos. """
         #Percorrendo as regiões.
