@@ -369,7 +369,6 @@ def startMC(matriz, rssf, clusters):
     var_10 = 10 #Variável que irá informar quando recalcular as distâncias dos vizinhos.
     var_20 = 20 #Variável que irá informar quando todos os sensores irão enviar uma mensagem para ERB.
     qnt = int(rssf["tam"] * 0.25) #Quantidade de sensores que irão mandar mensagem por ciclo.
-    firstDead = 0 #Variável que irá nos informar quando ocorreu a primeira morte.
     sensores = list(set([i for i in range(1, rssf["tam"] + 1)]) - set(clusters)) #Todos os sensores que não são clusters.
 
     #Calculando os menores caminhos de cada sensor.
@@ -409,10 +408,7 @@ def startMC(matriz, rssf, clusters):
                     envia.append(aleatorio)
             #Enviando a mensagem.
             mensagem = enviaMensagem(rssf, envia, True)
-            #Se a quantidade de sensores que conseguiram enviar suas mensagens for menor do que a quantidade estabelecida, a primeira morte aconteceu.
-            if len(mensagem) < qnt and firstDead == 0:
-                firstDead = ciclo
-    print(ciclo, firstDead)
+
     return ciclo
 
 
@@ -431,7 +427,6 @@ def startMS(matriz, rssf, clusters):
     var_10 = 10 #Variável que irá informar quando recalcular as distâncias dos vizinhos.
     var_20 = 20 #Variável que irá informar quando todos os sensores irão enviar uma mensagem para ERB.
     qnt = int(rssf["tam"] * 0.25) #Quantidade de sensores que irão mandar mensagem por ciclo.
-    firstDead = 0 #Variável que irá nos informar quando ocorreu a primeira morte.
     sensores = list(set([i for i in range(1, rssf["tam"] + 1)]) - set(clusters)) #Todos os sensores que não são clusters.
 
     #Calculando os menores caminhos de cada sensor.
@@ -440,7 +435,7 @@ def startMS(matriz, rssf, clusters):
         rssf[cluster].menorCaminho = menorCaminho[0::2]
         if rssf[cluster].menorCaminho[(len(rssf[cluster].menorCaminho) - 1)] != menorCaminho[len(menorCaminho) - 1]:
             rssf[cluster].menorCaminho.append(menorCaminho[len(menorCaminho) - 1])
-            
+
     while condicao:
         envia = [] #Lista que conterá os sensores que irão enviar a mensagem
         mensagem = [] #Lista que conterá quais sensores conseguiram enviar suas mensagens
@@ -477,10 +472,7 @@ def startMS(matriz, rssf, clusters):
                     envia.append(aleatorio)
             #Enviando a mensagem.
             mensagem = enviaMensagem(rssf, envia, False)
-            #Se a quantidade de sensores que conseguiram enviar suas mensagens for menor do que a quantidade estabelecida, a primeira morte aconteceu.
-            if len(mensagem) < qnt and firstDead == 0:
-                firstDead = ciclo
-    print(ciclo, firstDead)
+
     return ciclo
 
 
@@ -518,7 +510,6 @@ def startAG(matriz, rssf, clusters):
     var_10 = 10 #Variável que irá informar quando recalcular as distâncias dos vizinhos.
     var_20 = 20 #Variável que irá informar quando todos os sensores irão enviar uma mensagem para ERB.
     qnt = int(rssf["tam"] * 0.25) #Quantidade de sensores que irão mandar mensagem por ciclo.
-    firstDead = 0 #Variável que irá nos informar quando ocorreu a primeira morte.
     arvore, listaAdj = atualizaArvore(matriz, rssf, clusters) #Matriz representando o grafo em uma árvore mínima; Dicionário com a incidência de cada vértice.
     print(listaAdj)
     sensores = list(set([i for i in range(1, rssf["tam"] + 1)]) - set(clusters)) #Todos os sensores que não são clusters.
@@ -563,8 +554,5 @@ def startAG(matriz, rssf, clusters):
                     envia.append(aleatorio)
             #Enviando a mensagem.
             mensagem = enviaMensagem(rssf, envia, True)
-            #Se a quantidade de sensores que conseguiram enviar suas mensagens for menor do que a quantidade estabelecida, a primeira morte aconteceu.
-            if len(mensagem) < qnt and firstDead == 0:
-                firstDead = ciclo
-    print(ciclo, firstDead)
+
     return ciclo
