@@ -12,7 +12,7 @@ Saída: Dicionário onde tam é a chave para o tamanho, ERB é a chave para um t
 def leCoordenadas(resp):
     """ Variáveis principais """
     rssf = {} #Dicionário da rede
-    arquivo = f"C:\\Users\\Usuario\\Documents\\01 - Universidade\\3 - Periodo\\CMAC03 - Algoritmos em Grafos\\Trabalho\\Coordenadas\\Rede {resp}.txt" #Caminho
+    arquivo = f"Rede {resp}.txt" #Caminho
     sensor = 0 #Auxiliar
 
     """ Lendo o dataset """
@@ -26,7 +26,6 @@ def leCoordenadas(resp):
         if sensor == 0:
             rssf["ERB"] = tuple(float(val) for val in linha.strip().split(','))
         else:
-            #rssf[sensor] = Sensor(sensor, float(linha.strip().split(',')[0]), float(linha.strip().split(',')[1]))
             rssf[sensor] = (float(linha.strip().split(',')[0]), float(linha.strip().split(',')[1]))
         sensor += 1
     
