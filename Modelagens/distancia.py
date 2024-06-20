@@ -13,7 +13,7 @@ class Sensor():
         self.__identidade = identidade #Nome do sensor, numérico.
         self.__x = x #Coordenada x do sensor.
         self.__y = y #Coordenada y do sensor.
-        self.__alcance = 200 #Alcance do sensor.
+        self.__alcance = 300 #Alcance do sensor.
         self.__vizinhos = {} #Dicionário de vizinhos do sensor, cada chave é a distância até o sensor.
         self.__bateriaViz = {} #Dicionário das baterias dos vizinhos.
         self.__bateria = 2500 #Bateria do sensor.
@@ -218,7 +218,6 @@ def startMC(matriz, rssf):
     var_10 = 10 #Variável que irá informar quando recalcular as distâncias dos vizinhos.
     var_20 = 20 #Variável que irá informar quando todos os sensores irão enviar uma mensagem para ERB.
     qnt = int(rssf["tam"] * 0.25) #Quantidade de sensores que irão mandar mensagem por ciclo.
-    firstDead = 0 #Variável que irá nos informar quando ocorreu a primeira morte.
 
     #Calculando os menores caminhos de cada sensor.
     for sensor in range(1, rssf["tam"] + 1):
@@ -256,11 +255,8 @@ def startMC(matriz, rssf):
                     sensores.append(aleatorio)
             #Enviando a mensagem.
             mensagem = enviaMensagem(rssf, sensores, True)
-            #Se a quantidade de sensores que conseguiram enviar suas mensagens for menor do que a quantidade estabelecida, a primeira morte aconteceu.
-            if len(mensagem) < qnt and firstDead == 0:
-                firstDead = ciclo
 
-    return ciclo, firstDead
+    return ciclo
 
 
 """ ------------- MENOR CAMINHO COM SALTO ------------- """
@@ -271,7 +267,6 @@ def startMS(matriz, rssf):
     var_10 = 10 #Variável que irá informar quando recalcular as distâncias dos vizinhos.
     var_20 = 20 #Variável que irá informar quando todos os sensores irão enviar uma mensagem para ERB.
     qnt = int(rssf["tam"] * 0.25) #Quantidade de sensores que irão mandar mensagem por ciclo.
-    firstDead = 0 #Variável que irá nos informar quando ocorreu a primeira morte.
 
     #Calculando os menores caminhos de cada sensor.
     for sensor in range(1, rssf["tam"] + 1):
@@ -314,10 +309,8 @@ def startMS(matriz, rssf):
                     sensores.append(aleatorio)
             #Enviando a mensagem.
             mensagem = enviaMensagem(rssf, sensores, False)
-            #Se a quantidade de sensores que conseguiram enviar suas mensagens for menor do que a quantidade estabelecida, a primeira morte aconteceu.
-            if len(mensagem) < qnt and firstDead == 0:
-                firstDead = ciclo
-    return ciclo, firstDead
+
+    return ciclo
 
 """ ------------- ÁRVORE GERADORA MÍNIMA ------------- """
 
@@ -353,7 +346,6 @@ def startAG(matriz, rssf):
     var_10 = 10 #Variável que irá informar quando recalcular as distâncias dos vizinhos.
     var_20 = 20 #Variável que irá informar quando todos os sensores irão enviar uma mensagem para ERB.
     qnt = int(rssf["tam"] * 0.25) #Quantidade de sensores que irão mandar mensagem por ciclo.
-    firstDead = 0 #Variável que irá nos informar quando ocorreu a primeira morte.
     arvore, listaAdj = atualizaArvore(matriz, rssf) #Matriz representando o grafo em uma árvore mínima; Dicionário com a incidência de cada vértice.
 
     #Calculando o caminho de cada sensor.
@@ -394,7 +386,5 @@ def startAG(matriz, rssf):
                     sensores.append(aleatorio)
             #Enviando a mensagem.
             mensagem = enviaMensagem(rssf, sensores, True)
-            #Se a quantidade de sensores que conseguiram enviar suas mensagens for menor do que a quantidade estabelecida, a primeira morte aconteceu.
-            if len(mensagem) < qnt and firstDead == 0:
-                firstDead = ciclo
-    return ciclo, firstDead
+
+    return ciclo
