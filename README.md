@@ -27,7 +27,7 @@ Os datasets que estão sendo usados para a realização dos testes, a primeira l
 | 50 Motes   | 7140           | 11580                    | 5740                   |
 | 100 Motes  | 5260           | 10720                    | 3460                   |
 | 200 Motes  | 9280           | 10480                    | 1420                   |
-| 400 Motes  |                |                          | 1560                   |
+| 400 Motes  | 3880           | 10020                    | 1560                   |
 
 ### Modelagem por Cluster
 | Ciclos     | Caminho Mínimo | Caminho Mínimo com Salto | Arvore Geradora Mínima |
@@ -35,4 +35,4 @@ Os datasets que estão sendo usados para a realização dos testes, a primeira l
 | 50 Motes   | 16460          | 23760                    | 13780                  |
 | 100 Motes  | 16440          | 21580                    | 13500                  |
 | 200 Motes  | 17760          | 17880                    | 13840                  |
-| 400 Motes  |                |                          | 8400                   |
+| 400 Motes  | 15740          | 16200                    | 8400                   |
